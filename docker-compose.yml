@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  trading-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: trading-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./trading.db:/app/trading.db
+      - ./models:/app/models
+    environment:
+      - BINANCE_BASE_URL=${BINANCE_BASE_URL:-https://api.binance.com}
+      - DEFAULT_SYMBOL=${DEFAULT_SYMBOL:-BTCUSDT}
+      - DEFAULT_INTERVAL=${DEFAULT_INTERVAL:-1m}
+      - DEFAULT_KLINES_LIMIT=${DEFAULT_KLINES_LIMIT:-100}
+      - MODEL_THRESHOLD_PERCENT=${MODEL_THRESHOLD_PERCENT:-0.5}
+      - MODEL_PATH=${MODEL_PATH:-models/trading_model.pkl}
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///./trading.db}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
